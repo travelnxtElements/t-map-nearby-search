@@ -129,6 +129,23 @@ information on the API.
         value: false,
         notify: true,
         readOnly: true
+      },
+
+      /*
+       * If true, gets all pages from google places making multiple calls, else stops at first page only
+       * For more details check https://developers.google.com/places/web-service/search#PlaceSearchPaging
+       */
+      getPaginatedResults:{
+        type: Boolean,
+        value: false,
+      },
+
+     /*
+      * If true, makes google place API call on any of these variable changes - keyword, map, location, radius, types, globalSearch, else use 'search' public API to get google places.
+      */
+      auto:{
+        type: Boolean,
+        value: false,
       }
 
     },
@@ -136,7 +153,7 @@ information on the API.
     _results: [],
 
     observers: [
-      'search(keyword,map,location,radius,types,globalSearch)',
+      '_search(keyword,map,location,radius,types,globalSearch)',
       '_updateLocation(latitude,longitude)'
     ],
 
@@ -161,6 +178,11 @@ information on the API.
      * @param {Array<{latitude: number, longitude: number}>} detail An array of search results
      */
 
+    _search: function() {
+      if(this.auto){
+        this.search();
+      }
+    },
     /**
      * Perform a search using `keyword` and `types`.
      */
@@ -226,7 +248,7 @@ information on the API.
         return result;
       }));
 
-      if (pagination.hasNextPage) {
+      if (pagination.hasNextPage && this.getPaginatedResults) {
           pagination.nextPage();
           this.fire('t-map-nearby-search-partial-results', {results: this._results, status: status});
       }
